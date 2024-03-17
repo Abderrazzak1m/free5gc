@@ -2,7 +2,7 @@
 - name: Install Prerequisites for Free5GC
   hosts: all
   become: yes
-
+# bug :  ansible_env.HOME 
   tasks:
     # - name: Update apt cache
     #   apt:
