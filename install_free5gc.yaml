@@ -4,54 +4,62 @@
   become: yes
 
   tasks:
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-      become: yes
+    # - name: Update apt cache
+    #   apt:
+    #     update_cache: yes
+    #   become: yes
 
-    - name: Install Prerequisites
-      apt:
-        name: "{{ item }}"
-        state: present
-      with_items:
-        - git
-        - gcc
-        - g++
-        - cmake
-        - autoconf
-        - libtool
-        - pkg-config
-        - libmnl-dev
-        - libyaml-dev
-      become: yes
+    # - name: Install Prerequisites
+    #   apt:
+    #     name: "{{ item }}"
+    #     state: present
+    #   with_items:
+    #     - git
+    #     - gcc
+    #     - g++
+    #     - cmake
+    #     - autoconf
+    #     - libtool
+    #     - pkg-config
+    #     - libmnl-dev
+    #     - libyaml-dev
+    #   become: yes
 
-    - name: Install  mongodb
-      apt:
-        name: mongodb
-        state: present
-      become: yes
+    # - name: Install  mongodb
+    #   apt:
+    #     name: mongodb
+    #     state: present
+    #   become: yes
 
-    - name: Start mongodb
-      service:
-        name: mongodb
-        state: started
-      become: yes
+    # - name: Start mongodb
+    #   service:
+    #     name: mongodb
+    #     state: started
+    #   become: yes
 
     - name: Download Go binary
       get_url:
-        url: "https://dl.google.com/go/go{{ go_version }}.linux-amd64.tar.gz"
-        dest: "/tmp/go{{ go_version }}.linux-amd64.tar.gz"
+        url: "https://dl.google.com/go/go1.18.10.linux-amd64.tar.gz"
+        dest: "{{  ansible_env.HOME  }}/go1.18.10.linux-amd64.tar.gz"
         mode: '0644'
-
+   
     - name: Extract Go binary
-      ansible.builtin.unarchive:
-        src: "/tmp/go{{ go_version }}.linux-amd64.tar.gz"
-        dest: "/usr/local"
+      unarchive:
+        src: "{{ ansible_env.HOME }}/go1.18.10.linux-amd64.tar.gz"
+        dest: "/usr/local/"
         remote_src: yes
-        creates: "/usr/local/go/bin/go"
+    
+    - name: Create Go directories
+      file:
+        path: "{{ ansible_env.HOME }}/go/{{ item }}"
+        state: directory
+      loop:
+        - "bin"
+        - "pkg"
+        - "src"
 
-    - name: Set Go environment variables
-      ansible.builtin.lineinfile:
+    - name: Add environment variables to .bashrc
+      lineinfile:
         path: "{{ ansible_env.HOME }}/.bashrc"
         line: "{{ item }}"
         create: yes
@@ -60,7 +68,4 @@
         - "export GOROOT=/usr/local/go"
         - "export PATH=$PATH:{{ ansible_env.HOME }}/go/bin:/usr/local/go/bin"
         - "export GO111MODULE=auto"
-
-    - name: Source .bashrc to apply changes
-      ansible.builtin.shell: source ~/.bashrc
-
+   
