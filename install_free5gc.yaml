@@ -2,56 +2,59 @@
 - name: Install Prerequisites for Free5GC
   hosts: all
   become: yes
-# bug :  ansible_env.HOME 
+  vars:
+    home_path: "/home/miski"
+
+# bug :  in make
   tasks:
-    # - name: Update apt cache
-    #   apt:
-    #     update_cache: yes
-    #   become: yes
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      become: yes
 
-    # - name: Install Prerequisites
-    #   apt:
-    #     name: "{{ item }}"
-    #     state: present
-    #   with_items:
-    #     - git
-    #     - gcc
-    #     - g++
-    #     - cmake
-    #     - autoconf
-    #     - libtool
-    #     - pkg-config
-    #     - libmnl-dev
-    #     - libyaml-dev
-    #   become: yes
+    - name: Install Prerequisites
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - git
+        - gcc
+        - g++
+        - cmake
+        - autoconf
+        - libtool
+        - pkg-config
+        - libmnl-dev
+        - libyaml-dev
+      become: yes
 
-    # - name: Install  mongodb
-    #   apt:
-    #     name: mongodb
-    #     state: present
-    #   become: yes
+    - name: Install  mongodb
+      apt:
+        name: mongodb
+        state: present
+      become: yes
 
-    # - name: Start mongodb
-    #   service:
-    #     name: mongodb
-    #     state: started
-    #   become: yes
+    - name: Start mongodb
+      service:
+        name: mongodb
+        state: started
+      become: yes
 
     - name: Download Go binary
       get_url:
         url: "https://dl.google.com/go/go1.18.10.linux-amd64.tar.gz"
-        dest: "{{  ansible_env.HOME  }}/go1.18.10.linux-amd64.tar.gz"
+        dest: "{{  home_path  }}/go1.18.10.linux-amd64.tar.gz"
         mode: '0644'
    
     - name: Extract Go binary
       unarchive:
-        src: "{{ ansible_env.HOME }}/go1.18.10.linux-amd64.tar.gz"
+        src: "{{ home_path }}/go1.18.10.linux-amd64.tar.gz"
         dest: "/usr/local/"
         remote_src: yes
     
     - name: Create Go directories
       file:
-        path: "{{ ansible_env.HOME }}/go/{{ item }}"
+        path: "{{ home_path }}/go/{{ item }}"
         state: directory
       loop:
         - "bin"
@@ -60,12 +63,37 @@
 
     - name: Add environment variables to .bashrc
       lineinfile:
-        path: "{{ ansible_env.HOME }}/.bashrc"
+        path: "{{ home_path }}/.bashrc"
         line: "{{ item }}"
         create: yes
       loop:
-        - "export GOPATH={{ ansible_env.HOME }}/go"
-        - "export GOROOT=/usr/local/go"
-        - "export PATH=$PATH:{{ ansible_env.HOME }}/go/bin:/usr/local/go/bin"
-        - "export GO111MODULE=auto"
-   
+          - "export GOPATH=/home/miski/go"
+          - "export GOROOT=/usr/local/go"
+          - "export PATH=$PATH:/home/miski/go/bin:/usr/local/go/bin"
+          - "export GO111MODULE=auto"
+    - name: Get Go version
+      command: /usr/local/go/bin/go version
+      register: go_version_output
+    - name: Print Go version
+      debug:
+        msg: "{{ go_version_output.stdout }}"
+
+    - name: Clone Free5GC repository
+      git:
+        repo: "https://github.com/free5gc/free5gc.git"
+        dest: "{{ home_path }}/free5gc"
+        version: "v3.3.0"
+        recursive: yes
+        accept_hostkey: yes  # To avoid SSH key checking if using SSH
+        clone: yes
+
+    # - name: Run make command with sudo
+    #   ansible.builtin.shell:
+    #     cmd: make
+    #     environment:
+    #       PATH: "{{ ansible_env.PATH }}"
+    #   register: make_output
+
+    # - name: Print make command output
+    #   ansible.builtin.debug:
+    #     msg: "{{ make_output.stdout_lines }}"
