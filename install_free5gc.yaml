@@ -1,12 +1,11 @@
 ---
-- name: Install Prerequisites for Free5GC
+- name: Build and Install free5GC
   hosts: all
-  become: yes
   vars:
     home_path: "/home/miski"
 
-# bug :  in make
   tasks:
+# --------------------- Install Prerequisites -------------------------------------
     - name: Update apt cache
       apt:
         update_cache: yes
@@ -43,14 +42,16 @@
     - name: Download Go binary
       get_url:
         url: "https://dl.google.com/go/go1.18.10.linux-amd64.tar.gz"
-        dest: "{{  home_path  }}/go1.18.10.linux-amd64.tar.gz"
-        mode: '0644'
+        dest: "{{ home_path }}/go1.18.10.linux-amd64.tar.gz"
    
     - name: Extract Go binary
       unarchive:
         src: "{{ home_path }}/go1.18.10.linux-amd64.tar.gz"
         dest: "/usr/local/"
         remote_src: yes
+        mode: '0755'
+
+      become: true
     
     - name: Create Go directories
       file:
@@ -60,16 +61,16 @@
         - "bin"
         - "pkg"
         - "src"
-
+      
     - name: Add environment variables to .bashrc
       lineinfile:
         path: "{{ home_path }}/.bashrc"
         line: "{{ item }}"
         create: yes
       loop:
-          - "export GOPATH=/home/miski/go"
+          - "export GOPATH={{ home_path }}/go"
           - "export GOROOT=/usr/local/go"
-          - "export PATH=$PATH:/home/miski/go/bin:/usr/local/go/bin"
+          - "export PATH=$PATH:$GOPATH/bin:$GOROOT/bin"
           - "export GO111MODULE=auto"
     - name: Get Go version
       command: /usr/local/go/bin/go version
@@ -77,6 +78,8 @@
     - name: Print Go version
       debug:
         msg: "{{ go_version_output.stdout }}"
+
+# --------------------- Install Control Plane Elements -------------------------------------
 
     - name: Clone Free5GC repository
       git:
@@ -87,13 +90,38 @@
         accept_hostkey: yes  # To avoid SSH key checking if using SSH
         clone: yes
 
-    # - name: Run make command with sudo
-    #   ansible.builtin.shell:
-    #     cmd: make
-    #     environment:
-    #       PATH: "{{ ansible_env.PATH }}"
-    #   register: make_output
+    - name: build all network functions
+      command: /usr/bin/make
+      args:
+        chdir: "{{ home_path }}/free5gc"
+      environment:
+        PATH: "{{ ansible_env.PATH }}:{{ home_path }}/go/bin:/usr/local/go/bin"
 
-    # - name: Print make command output
-    #   ansible.builtin.debug:
-    #     msg: "{{ make_output.stdout_lines }}"
+# --------------------- Install User Plane Function (UPF) -------------------------------------
+
+    - name: clone User Plane Function (UPF)
+      git: 
+        repo:  "https://github.com/free5gc/gtp5g.git"
+        dest:  "{{ home_path }}/gtp5g"
+        version: "v0.8.5"
+        recursive: yes
+        accept_hostkey: yes
+        clone: yes
+
+    - name: build User Plane Function (UPF) STEP1
+      command: /usr/bin/make
+      args:
+        chdir: "{{ home_path }}/gtp5g"
+      environment:
+        PATH: "{{ ansible_env.PATH }}:{{ home_path }}/go/bin:/usr/local/go/bin"
+
+    - name: build User Plane Function (UPF) STEP2
+      command: /usr/bin/make install
+      args:
+        chdir: "{{ home_path }}/gtp5g"
+      environment:
+        PATH: "{{ ansible_env.PATH }}:{{ home_path }}/go/bin:/usr/local/go/bin"
+      become: true
+
+# ---------------------  Install WebConsole  -------------------------------------
+
