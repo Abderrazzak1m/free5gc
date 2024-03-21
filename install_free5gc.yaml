@@ -119,5 +119,51 @@
         target: install
 
 # ---------------------  Install WebConsole  -------------------------------------
+    - name: Installing Nodejs
+      get_url:
+        url: "https://deb.nodesource.com/setup_20.x"
+        dest: ~/nodejs
+        mode: 0755
+      become: true
 
-   
+    - name: Nodejs Package
+      command: ~/nodejs
+      args:
+        creates: /etc/apt/sources.list.d/nodesource.list
+      become: true
+    - name: Yarn GPG
+      apt_key:
+        url: https://dl.yarnpkg.com/debian/pubkey.gpg
+        state: present
+      become: true
+
+    - name: Importing Yarn Package
+      copy:
+        content: "deb https://dl.yarnpkg.com/debian/ stable main"
+        dest: /etc/apt/sources.list.d/yarn.list
+      become: true
+
+    - name: Installing Nodejs + Yarn
+      apt:
+        name:
+          - nodejs
+          - yarn
+        update_cache: true
+      become: true
+
+    - name: Make webconsole
+      command:  "/usr/bin/make  webconsole"
+      args:
+        chdir: "{{ home_path }}/free5gc"
+      environment:
+        PATH: "{{ ansible_env.PATH }}:{{ home_path }}/go/bin:/usr/local/go/bin"
+      register: make_result
+  
+    - name: Debug make_result
+      debug:
+        var: make_result
+
+    - name: Proceed if webconsole is successfully built
+      debug:
+        msg: "Webconsole was successfully built"
+      when: not make_result.failed
