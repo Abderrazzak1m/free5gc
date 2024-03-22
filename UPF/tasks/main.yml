@@ -1,0 +1,18 @@
+- name: clone User Plane Function (UPF)
+  git: 
+    repo:  "https://github.com/free5gc/gtp5g.git"
+    dest:  "~/gtp5g"
+    version: "v0.8.5"
+    recursive: yes
+    accept_hostkey: yes
+    clone: yes
+
+- name: build User Plane Function (UPF) STEP1
+  make:
+    chdir: "~/gtp5g"
+
+- name: build User Plane Function (UPF) STEP2
+  become: true
+  make:
+    chdir: "{{ ansible_env.HOME }}/gtp5g"
+    target: install

@@ -1,0 +1,14 @@
+- name: Clone Free5GC repository
+  git:
+    repo: "https://github.com/free5gc/free5gc.git"
+    dest: "~/free5gc"
+    version: "v3.3.0"
+    recursive: yes
+    accept_hostkey: yes  # To avoid SSH key checking if using SSH
+    clone: yes
+
+- name: build all network functions
+  command: /usr/bin/make
+  args:
+    chdir: "~/free5gc"
+  environment: "{{ ansible_env }}"

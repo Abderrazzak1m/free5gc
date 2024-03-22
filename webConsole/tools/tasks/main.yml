@@ -1,0 +1,20 @@
+- name: Update apt cache
+  apt:
+    update_cache: yes
+  become: yes
+
+- name: Install Prerequisites
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - git
+    - gcc
+    - g++
+    - cmake
+    - autoconf
+    - libtool
+    - pkg-config
+    - libmnl-dev
+    - libyaml-dev
+  become: yes
