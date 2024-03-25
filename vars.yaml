@@ -1,1 +1,16 @@
-user: miski
+
+ansible_ssh_user: miski
+ansible_ssh_pass: miski
+
+kernel:
+  linux_image_name: "linux-image-5.4.0-94-generic"
+  linux_version: "5.4.0-94-generic"
+
+free5gc:
+  version: "v3.3.0"
+
+gtp5g:
+  version: "v0.8.5"
+
+golang:
+  version: "1.18.10"

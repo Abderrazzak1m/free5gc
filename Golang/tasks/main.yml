@@ -1,11 +1,11 @@
 - name: Download Go binary
   get_url:
-    url: "https://dl.google.com/go/go1.18.10.linux-amd64.tar.gz"
-    dest: "/tmp/go1.18.10.linux-amd64.tar.gz"
+    url: "https://dl.google.com/go/go{{golang.version}}.linux-amd64.tar.gz"
+    dest: "/tmp/go{{golang.version}}.linux-amd64.tar.gz"
 
 - name: Extract Go binary
   unarchive:
-    src: "/tmp/go1.18.10.linux-amd64.tar.gz"
+    src: "/tmp/go{{golang.version}}.linux-amd64.tar.gz"
     dest: "/usr/local/"
     remote_src: yes
     mode: '0755'

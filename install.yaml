@@ -1,8 +1,7 @@
 - name: install free5gc
   hosts: all
-  vars:
-    ansible_ssh_user: miski
-    ansible_ssh_pass: miski
+  vars_files:
+    - "./vars.yaml"
   tasks:
     - name: Set ansible environment variables
       set_fact:
@@ -18,9 +17,9 @@
         name: "{{ item }}"
       with_items:
         - kernel_version
-        # - tools
-        # - mongodb
-        # - Golang
-        # - free5gc
-        # - UPF
-        # - webConsole
+        - tools
+        - mongodb
+        - Golang
+        - free5gc
+        - gtp5g
+        - webConsole

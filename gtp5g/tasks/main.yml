@@ -2,7 +2,7 @@
   git: 
     repo:  "https://github.com/free5gc/gtp5g.git"
     dest:  "~/gtp5g"
-    version: "v0.8.5"
+    version: "{{gtp5g.version}}"
     recursive: yes
     accept_hostkey: yes
     clone: yes

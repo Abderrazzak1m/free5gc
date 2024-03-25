@@ -5,9 +5,9 @@
     state: present
   become: true
 
-- name: Install 5.4.x kernel
+- name:  "install {{kernel.linux_image_name}}"
   apt:
-    name: linux-image-5.4.0-94-generic  
+    name: "{{kernel.linux_image_name}}"
     state: present
   become: true
 
@@ -24,12 +24,14 @@
   lineinfile:
     path: /etc/default/grub
     regexp: '^GRUB_DEFAULT='
-    line: 'GRUB_DEFAULT="Advanced options for Ubuntu>Ubuntu, with Linux 5.4.0-94-generic"'
+    line: 'GRUB_DEFAULT="Advanced options for Ubuntu>Ubuntu, with Linux {{kernel.linux_version}}"'
   become: true
 
 - name: Update GRUB
   command: update-grub
   become: yes
+
+
 - name: Reboot the server
   ansible.builtin.reboot:
   async: 1
@@ -51,3 +53,8 @@
   debug:
     var: kernel_version_output.stdout
 
+- name: Install Linux kernel headers package
+  apt:
+    name: "linux-headers-{{kernel.linux_version}}"
+    state: present
+  become: true
