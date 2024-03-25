@@ -17,4 +17,5 @@
     - pkg-config
     - libmnl-dev
     - libyaml-dev
+    - net-tools
   become: yes

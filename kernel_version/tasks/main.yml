@@ -1,0 +1,53 @@
+- name: Ensure kernel packages are up-to-date
+  apt:
+    update_cache: true
+    upgrade: "yes"
+    state: present
+  become: true
+
+- name: Install 5.4.x kernel
+  apt:
+    name: linux-image-5.4.0-94-generic  
+    state: present
+  become: true
+
+- name: Get GRUB menu entries
+  shell: grep -E "menuentry |submenu " /boot/grub/grub.cfg | cut -d "'" -f2
+  register: grub_entries
+  changed_when: false
+
+- name: Backup grub configuration file
+  shell: cp /etc/default/grub /etc/default/grub.bak
+  become: true
+
+- name: Edit grub configuration file
+  lineinfile:
+    path: /etc/default/grub
+    regexp: '^GRUB_DEFAULT='
+    line: 'GRUB_DEFAULT="Advanced options for Ubuntu>Ubuntu, with Linux 5.4.0-94-generic"'
+  become: true
+
+- name: Update GRUB
+  command: update-grub
+  become: yes
+- name: Reboot the server
+  ansible.builtin.reboot:
+  async: 1
+  poll: 0
+  ignore_errors: yes
+  become: true
+
+- name: Wait for server to come back online
+  wait_for_connection:
+    timeout: 300
+
+- name: Display kernel version
+  shell:
+    cmd: "uname -r"
+  register: kernel_version_output
+  no_log: true
+
+- name: Print kernel version
+  debug:
+    var: kernel_version_output.stdout
+
