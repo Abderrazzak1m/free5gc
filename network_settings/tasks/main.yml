@@ -1,0 +1,20 @@
+- name: Enable IP forwarding
+  shell: sysctl -w net.ipv4.ip_forward=1
+  changed_when: false
+  become: true
+
+- name: Set up NAT
+  shell: iptables -t nat -A POSTROUTING -o {{ network.inetrface }} -j MASQUERADE
+  changed_when: false
+  become: true
+
+- name: Adjust TCP MSS
+  shell: iptables -A FORWARD -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
+  changed_when: false
+  become: true
+
+- name: Stop UFW
+  service:
+    name: ufw
+    state: stopped
+  become: true

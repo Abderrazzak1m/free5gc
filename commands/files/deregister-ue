@@ -1,0 +1,2 @@
+#!/bin/bash
+docker exec -it ue_test bash -c ' ./nr-cli imsi-208930000000003 --exec "deregister disable-5g" '

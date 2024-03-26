@@ -1,0 +1,2 @@
+#!/bin/bash
+docker exec -it gnb_test bash -c ' ./nr-cli UERANSIM-gnb-208-93-1 --exec "ue-release 1" '

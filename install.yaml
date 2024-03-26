@@ -16,10 +16,13 @@
       include_role:
         name: "{{ item }}"
       with_items:
-        - kernel_version
-        - tools
-        - mongodb
-        - Golang
-        - free5gc
-        - gtp5g
-        - webConsole
+        # - kernel_version
+        # - network_settings
+        # - tools
+        # - mongodb
+        # - Golang
+        # - free5gc
+        # - gtp5g
+        # - webConsole
+        # - commands
+        - docker

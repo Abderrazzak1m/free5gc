@@ -1,6 +1,7 @@
 
-ansible_ssh_user: miski
-ansible_ssh_pass: miski
+ansible_ssh_user: ubuntu
+ansible_ssh_pass: ubuntu
+ansible_become_pass: ubuntu
 
 kernel:
   linux_image_name: "linux-image-5.4.0-94-generic"
@@ -14,3 +15,6 @@ gtp5g:
 
 golang:
   version: "1.18.10"
+
+network:
+  inetrface: eth0

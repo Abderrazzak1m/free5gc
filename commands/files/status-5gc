@@ -1,0 +1,47 @@
+#!/bin/bash
+
+ip_address=$(ip addr show eth0 | awk '/inet / {print $2}' | cut -d '/' -f 1)
+
+services=("NRF 127.0.0.10 8000" "UDM 127.0.0.3 8000" \
+          "UDR 127.0.0.4 8000" "AMF $ip_address 8000" \
+          "UPF 127.0.0.8 8805" "SMF 127.0.0.2 8000" \
+          "NSSF 127.0.0.31 8000" "AUSF 127.0.0.9 8000" \
+          "PCF 127.0.0.7 8000")
+
+# Get the list of open TCP connections and extract only the IP:Port information
+open_connections=$(sudo ss -lntup | awk '/^(tcp|udp)/ {print $5}')
+
+found=()
+notfound=()
+
+for service in "${services[@]}"; do
+    read -r name ip port <<< "$service"
+    for ip_port in $open_connections; do
+        if [[ "$ip_port" == "$ip:$port" ]]; then
+            found+=("$name")
+        fi
+    done
+done
+
+# Construct the updated services list without the found services
+updated_services=()
+for service in "${services[@]}"; do
+    read -r name ip port <<< "$service"
+    if [[ ! " ${found[@]} " =~ " $name " ]]; then
+        updated_services+=("$service")
+    fi
+done
+
+# Update the services array with the new list
+services=("${updated_services[@]}")
+
+# Print found list elements in green
+for name in "${found[@]}"; do
+    echo -e "\033[0;32m$name\033[0m"
+done
+
+# Print notfound list elements in red
+for service in "${services[@]}"; do
+    read -r name ip port <<< "$service"
+    echo -e "\033[0;31m$name\033[0m"
+done
